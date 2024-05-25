@@ -58,7 +58,7 @@
                 </div>
                 <br>
 
-                <h5>Data: 08 de Setembro</h5>
+                <h5>Data: {{ data }}</h5>
                 <br>
                     
                 <form action="{% url 'fechar_pedido' %}" method="POST">{% csrf_token %}
@@ -77,6 +77,15 @@
 
             </div>
         </div>
+        <br>
+        <a href="{% url 'gerenciar_pedidos' %}" class="btn btn-info">Ver pedidos</a>
+        <br>
+        <br>
+        <a href="{% url 'gerenciar_exames' %}" class="btn btn-info">Ver Exames</a>
+        <br>
+        <br>
+        <a href="{% url 'logout_conta' %}" class="btn btn-warning">Deslogar</a>
     </div>
-
+    <br>
+    
 {% endblock 'conteudo' %}

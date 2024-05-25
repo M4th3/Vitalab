@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from .models import TiposExames, SolicitacaoExame, PedidosExames, AcessoMedico
 from django.http import HttpResponse
 from django.contrib import messages
+from django.contrib.auth import logout
 import datetime
 
 
@@ -11,6 +12,7 @@ import datetime
 #usuario usuario: guimê
 #usuario senha  : 12345678
 
+@login_required(login_url='/usuarios/login')
 def solicitar_exame(request):
 
     if request.method == "GET":
@@ -21,6 +23,7 @@ def solicitar_exame(request):
         tipos_exames = TiposExames.objects.all()
         exames_id = request.POST.getlist('exames')
         solicitacao_exames = TiposExames.objects.filter(id__in=exames_id)
+        data = datetime.datetime.now()
         preco_total = 0
         for i in solicitacao_exames:
             if i.disponivel:
@@ -28,8 +31,14 @@ def solicitar_exame(request):
         
         return render(request, 'html/solicitar_exames.html', {'tipos_exames':tipos_exames,
                                                               'solicitacao_exames':solicitacao_exames,
-                                                              'preco_total':preco_total})
+                                                              'preco_total':preco_total, 'data': data}
+                                                              )
     
+def logout_conta(request):
+    logout(request)
+    return redirect('/usuarios/login')
+
+@login_required(login_url='/usuarios/login')    
 def fechar_pedido(request):
     id_exames = request.POST.getlist('exames')
     solicitacao_exames = TiposExames.objects.filter(id__in=id_exames)
@@ -56,11 +65,13 @@ def fechar_pedido(request):
 
     messages.add_message(request, messages.constants.SUCCESS, 'Pedido de exame concluído com sucesso !!!')
     return redirect('/exames/gerenciar_pedidos')
-        
+
+@login_required(login_url='/usuarios/login')        
 def gerenciar_pedidos(request):
     pedidos_exames = PedidosExames.objects.filter(usuario=request.user)
     return render(request, 'html/gerenciar_pedidos.html', {'pedidos_exames':pedidos_exames})    
 
+@login_required(login_url='/usuarios/login')
 def cancelar_pedido(request, pedido_id):
     pedido = PedidosExames.objects.get(id=pedido_id)
     if not pedido.usuario == request.user:
@@ -70,13 +81,15 @@ def cancelar_pedido(request, pedido_id):
     pedido.save()
     messages.add_message(request, messages.constants.SUCCESS, 'Seu pedido foi cancelado !!!')
     return redirect('/exames/gerenciar_pedidos')
-            
+
+@login_required(login_url='/usuarios/login')            
 def gerenciar_exames(request):
     exames = SolicitacaoExame.objects.filter(usuario=request.user)
     
     
     return render(request, 'html/gerenciar_exames.html', {'exames': exames})
 
+@login_required(login_url='/usuarios/login')
 def permitir_abrir_exame(request, exame_id):
     exame =SolicitacaoExame.objects.get(id=exame_id)
 
@@ -89,7 +102,8 @@ def permitir_abrir_exame(request, exame_id):
        
     else:
         return redirect(f'/exames/solicitar_senha_exame/{exame_id}')
-    
+
+@login_required(login_url='/usuarios/login')    
 def solicitar_senha_exame(request, exame_id):
     exame = SolicitacaoExame.objects.get(id=exame_id)
     if request.method == 'GET':
@@ -107,6 +121,7 @@ def solicitar_senha_exame(request, exame_id):
             messages.add_message(request, messages.constants.ERROR, 'Você não tem permissão para acessar essa página!!!')
             return redirect('/exames/gerenciar_exames')
 
+@login_required(login_url='/usuarios/login')
 def gerar_acesso_medico(request):
     if request.method == 'GET':
         acessos = AcessoMedico.objects.filter(usuario=request.user)
